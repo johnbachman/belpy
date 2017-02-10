@@ -41,7 +41,7 @@ def get_pmid_key(pmid):
 
 
 def get_reach_key(pmid):
-    return get_pmid_key(pmid) + '/reach'
+    return get_pmid_key(pmid) + '/reach_no_bioentities'
 
 
 def filter_keys(prefix):
