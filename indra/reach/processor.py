@@ -360,16 +360,16 @@ class ReachProcessor(object):
                 if up_id:
                     db_refs['UP'] = up_id
             elif ns == 'pfam':
-                be_id = bioentities_map.get(('PF', xr['id']))
-                if be_id:
-                    db_refs['BE'] = be_id
-                    agent_name = be_id
+                #be_id = bioentities_map.get(('PF', xr['id']))
+                #if be_id:
+                #    db_refs['BE'] = be_id
+                #    agent_name = be_id
                 db_refs['PF'] = xr['id']
             elif ns == 'interpro':
-                be_id = bioentities_map.get(('IP', xr['id']))
-                if be_id:
-                    db_refs['BE'] = be_id
-                    agent_name = be_id
+                #be_id = bioentities_map.get(('IP', xr['id']))
+                #if be_id:
+                #    db_refs['BE'] = be_id
+                #    agent_name = be_id
                 db_refs['IPR'] = xr['id']
             elif ns == 'chebi':
                 db_refs['CHEBI'] = xr['id']
