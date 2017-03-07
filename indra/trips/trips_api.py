@@ -3,6 +3,14 @@ from builtins import dict, str
 from indra.trips import trips_client
 from indra.trips.processor import TripsProcessor
 
+# Python 3
+try:
+    from functools import lru_cache
+# Python 2
+except ImportError:
+    from functools32 import lru_cache
+
+@lru_cache(maxsize=100)
 def process_text(text, save_xml_name='trips_output.xml', save_xml_pretty=True):
     """Return a TripsProcessor by processing text.
 
