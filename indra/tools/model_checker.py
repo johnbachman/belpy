@@ -499,3 +499,7 @@ def _path_polarity(im, path):
     #return True if path_polarity == 1 else False
     return path_polarity
 
+def remove_im_params(model, im):
+    for param in model.parameters:
+        im.remove_node(param.name)
+
