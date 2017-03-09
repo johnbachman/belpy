@@ -94,7 +94,7 @@ class ModelChecker(object):
         elif isinstance(stmt, RegulateActivity):
             return self._check_regulate_activity(stmt)
         else:
-            return False
+            return (0, [])
 
     def _check_regulate_activity(self, stmt):
         """Check a RegulateActivity statement."""
@@ -119,7 +119,7 @@ class ModelChecker(object):
             obj_mp = obj_monomer(**obj_site_pattern)
         except Exception as e:
             logger.info("Could not create obj monomer pattern: %s" % e)
-            return False
+            return (0, [])
         obj_obs = Observable(obj_obs_name, obj_mp, _export=False)
         return self._find_im_paths(subj_mp, obj_obs, target_polarity)
 
@@ -135,7 +135,7 @@ class ModelChecker(object):
             if not enz_mps:
                 logger.info('No monomers found corresponding to agent %s' %
                              stmt.enz)
-                return False
+                return (0, [])
         else:
             enz_mps = [None]
         # Get target polarity
@@ -153,18 +153,18 @@ class ModelChecker(object):
         obj_mps = list(pa.grounded_monomer_patterns(self.model, modified_sub))
         if not obj_mps:
             logger.info('Failed to create observable; returning False')
-            return False
+            return (0, [])
         # Try to find paths between pairs of matching subj and object monomer
         # patterns
         for enz_mp, obj_mp in itertools.product(enz_mps, obj_mps):
             obj_obs = Observable(obs_name, obj_mp, _export=False)
             # Return True for the first valid path we find
-            if self._find_im_paths(enz_mp, obj_obs, target_polarity):
-                return True
+            return self._find_im_paths(enz_mp, obj_obs, target_polarity)
         # If we got here, then there was no path for any observable
-        return False
+        return (0, [])
 
-    def _find_im_paths(self, subj_mp, obj_obs, target_polarity):
+    def _find_im_paths(self, subj_mp, obj_obs, target_polarity,
+                       num_paths_to_return=1):
         """Check for a source/target path in the influence map.
 
         Parameters
@@ -181,6 +181,11 @@ class ModelChecker(object):
 
         Returns
         -------
+        tuple of (int, list)
+            The first element in the tuple is the total number of paths found;
+            the second is a list containing the top (shortest)
+            num_paths_to_return paths found. If no paths are found, returns (0,
+            []).
         boolean
             Whether there is a path from a rule matching the subject
             MonomerPattern to the object Observable with the appropriate
@@ -216,20 +221,26 @@ class ModelChecker(object):
             # If we have enzyme information but there are no input rules
             # matching the enzyme, then there is no path
             if not input_rule_set:
-                return False
+                return (0, [])
         # Generate the predecessors to our observable and count the paths
         # TODO: Make it optionally possible to return on the first path?
         num_paths = 0
+        paths = []
         for path in _find_sources(self.get_im(), obj_obs.name, input_rule_set,
                                   target_polarity):
             num_paths += 1
-        #for path in _find_sources_with_paths(self.get_im(), obj_obs.name,
-        #                                     input_rule_set, target_polarity):
-        #    num_paths += 1
-        if num_paths > 0:
-            return True
+        if num_paths == 0:
+            return (0, [])
         else:
-            return False
+            path_generator =  _find_sources_with_paths(self.get_im(),
+                                                obj_obs.name, input_rule_set,
+                                                target_polarity)
+            for path_ix, path in enumerate(path_generator):
+                if path_ix >= num_paths_to_return:
+                    return (num_paths, paths)
+                else:
+                    paths.append(path)
+        return (num_paths, paths)
 
 def _find_sources_with_paths(im, target, sources, polarity):
     """Get the subset of source nodes with paths to the target.
@@ -276,7 +287,7 @@ def _find_sources_with_paths(im, target, sources, polarity):
             sign = _path_polarity(im, reversed(path))
         if (sources is None or node in sources) and sign == polarity:
             logger.info('Found path: %s' % path)
-            yield path
+            yield list(reversed(path))
         for predecessor, sign in _get_signed_predecessors(im, node, 1):
             new_path = list(path)
             new_path.append(predecessor)
