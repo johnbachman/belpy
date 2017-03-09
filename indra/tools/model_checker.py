@@ -18,7 +18,7 @@ class ModelChecker(object):
     """Check a PySB model against a set of INDRA statements."""
 
     def __init__(self, model, stmts_to_check=None):
-        self.model = model
+        self.model = deepcopy(model)
         if stmts_to_check:
             self.statements = stmts_to_check
         else:
