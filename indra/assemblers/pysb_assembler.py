@@ -2109,6 +2109,8 @@ def decreaseamount_assemble_one_step(stmt, model, agent_set):
     obj_pattern = get_monomer_pattern(model, stmt.obj)
     rule_obj_str = get_agent_rule_str(stmt.obj)
 
+    anns = []
+
     if stmt.subj is None:
         # See U. Alon paper on proteome dynamics at 10.1126/science.1199784 
         param_name = 'kf_' + stmt.obj.name[0].lower() + '_deg'
@@ -2129,7 +2131,10 @@ def decreaseamount_assemble_one_step(stmt, model, agent_set):
         r = Rule(rule_name,
             subj_pattern + obj_pattern >> subj_pattern,
             kf_one_step_degrade)
-    anns = [Annotation(rule_name, stmt.uuid, 'from_indra_statement')]
+        anns.append(Annotation(rule_name, subj_pattern.monomer.name,
+                               'rule_has_subject'))
+    anns += [Annotation(rule_name, stmt.uuid, 'from_indra_statement'),
+             Annotation(rule_name, obj_pattern.monomer.name, 'rule_has_object')]
     add_rule_to_model(model, r, anns)
 
 decreaseamount_assemble_default = decreaseamount_assemble_one_step
@@ -2184,6 +2189,7 @@ def increaseamount_assemble_one_step(stmt, model, agent_set):
     obj_pattern = obj_monomer(**sites_dict)
     rule_obj_str = get_agent_rule_str(stmt.obj)
 
+    anns = []
     if stmt.subj is None:
         param_name = 'kf_' + stmt.obj.name[0].lower() + '_synth'
         kf_one_step_synth = get_create_parameter(model, param_name, 2,
@@ -2201,7 +2207,10 @@ def increaseamount_assemble_one_step(stmt, model, agent_set):
         rule_name = '%s_synthesizes_%s' % (rule_subj_str, rule_obj_str)
         r = Rule(rule_name, subj_pattern >> subj_pattern + obj_pattern,
                  kf_one_step_synth)
-    anns = [Annotation(rule_name, stmt.uuid, 'from_indra_statement')]
+        anns.append(Annotation(rule_name, subj_pattern.monomer.name,
+                               'rule_has_subject'))
+    anns += [Annotation(rule_name, stmt.uuid, 'from_indra_statement'),
+             Annotation(rule_name, obj_pattern.monomer.name, 'rule_has_object')]
     add_rule_to_model(model, r, anns)
 
 increaseamount_monomers_default = increaseamount_monomers_one_step
