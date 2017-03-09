@@ -80,6 +80,10 @@ class CyJSAssembler(object):
             The json serialized Cytoscape JS model.
         """
         for stmt in self.statements:
+            if None in stmt.agent_list():
+                logger.info("Statement %s contains None agent, skipping"
+                            % stmt)
+                continue
             if isinstance(stmt, RegulateActivity):
                 self._add_regulate_activity(stmt)
             elif isinstance(stmt, Inhibition):

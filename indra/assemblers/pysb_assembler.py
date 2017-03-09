@@ -1170,20 +1170,18 @@ def modification_monomers_interactions_only(stmt, agent_set):
 
 
 def modification_monomers_one_step(stmt, agent_set):
-    if stmt.enz is None:
-        return
-    enz = agent_set.get_create_base_agent(stmt.enz)
     sub = agent_set.get_create_base_agent(stmt.sub)
+    mod_condition_name = stmt.__class__.__name__.lower()
     # NOTE: This assumes that a Modification statement will only ever
     # involve a single phosphorylation site on the substrate (typically
     # if there is more than one site, they will be parsed into separate
     # Phosphorylation statements, i.e., phosphorylation is assumed to be
     # distributive. If this is not the case, this assumption will need to
     # be revisited.
-    mod_condition_name = stmt.__class__.__name__.lower()
     sub.create_mod_site(ist.ModCondition(mod_condition_name,
                                          stmt.residue, stmt.position))
-
+    if stmt.enz is not None:
+        enz = agent_set.get_create_base_agent(stmt.enz)
 
 def modification_monomers_two_step(stmt, agent_set):
     if stmt.enz is None:
@@ -1228,37 +1226,47 @@ def modification_assemble_interactions_only(stmt, model, agent_set):
 
 
 def modification_assemble_one_step(stmt, model, agent_set):
-    if stmt.enz is None:
-        return
     mod_condition_name = stmt.__class__.__name__.lower()
-    param_name = 'kf_%s%s_%s' % (stmt.enz.name[0].lower(),
-                                  stmt.sub.name[0].lower(), mod_condition_name)
-    kf_mod = get_create_parameter(model, param_name, 1e-6)
-
     # See NOTE in monomers_one_step
     mod_site = get_mod_site_name(mod_condition_name,
-                                  stmt.residue, stmt.position)
-    # Remove pre-set activity flag
-    enz_pattern = get_monomer_pattern(model, stmt.enz)
+                                 stmt.residue, stmt.position)
     unmod_site_state = states[mod_condition_name][0]
     mod_site_state = states[mod_condition_name][1]
     sub_unmod = get_monomer_pattern(model, stmt.sub,
         extra_fields={mod_site: unmod_site_state})
     sub_mod = get_monomer_pattern(model, stmt.sub,
         extra_fields={mod_site: mod_site_state})
-
-    rule_enz_str = get_agent_rule_str(stmt.enz)
     rule_sub_str = get_agent_rule_str(stmt.sub)
-    rule_name = '%s_%s_%s_%s' % \
-        (rule_enz_str, mod_condition_name, rule_sub_str, mod_site)
-    r = Rule(rule_name,
-            enz_pattern + sub_unmod >>
-            enz_pattern + sub_mod,
-            kf_mod)
-    anns = [Annotation(rule_name, enz_pattern.monomer.name, 'rule_has_subject'),
-            Annotation(rule_name, sub_unmod.monomer.name, 'rule_has_object')]
-    anns += [Annotation(rule_name, stmt.uuid, 'from_indra_statement')]
-    add_rule_to_model(model, r, anns)
+    if stmt.enz is None:
+        param_name = 'kf_%s_%s' % (stmt.sub.name[0].lower(), mod_condition_name)
+        kf_mod = get_create_parameter(model, param_name, 1e-3)
+        rule_name = '%s_%s_%s' % (mod_condition_name, rule_sub_str, mod_site)
+        r = Rule(rule_name, sub_unmod >> sub_mod, kf_mod)
+        anns = [Annotation(rule_name, stmt.uuid, 'from_indra_statement'),
+                 Annotation(rule_name, sub_unmod.monomer.name,
+                            'rule_has_object')]
+        add_rule_to_model(model, r, anns)
+    else:
+        param_name = 'kf_%s%s_%s' % (stmt.enz.name[0].lower(),
+                                     stmt.sub.name[0].lower(),
+                                     mod_condition_name)
+        kf_mod = get_create_parameter(model, param_name, 1e-6)
+        # Remove pre-set activity flag
+        enz_pattern = get_monomer_pattern(model, stmt.enz)
+
+        rule_enz_str = get_agent_rule_str(stmt.enz)
+        rule_name = '%s_%s_%s_%s' % \
+            (rule_enz_str, mod_condition_name, rule_sub_str, mod_site)
+        r = Rule(rule_name,
+                enz_pattern + sub_unmod >>
+                enz_pattern + sub_mod,
+                kf_mod)
+        anns = [Annotation(rule_name, stmt.uuid, 'from_indra_statement'),
+                 Annotation(rule_name, enz_pattern.monomer.name,
+                           'rule_has_subject'),
+                 Annotation(rule_name, sub_unmod.monomer.name,
+                            'rule_has_object')]
+        add_rule_to_model(model, r, anns)
 
 
 def modification_assemble_two_step(stmt, model, agent_set):
