@@ -85,13 +85,13 @@ class CyJSAssembler(object):
                             % stmt)
                 continue
             if isinstance(stmt, RegulateActivity):
-                self._add_regulate_activity(stmt)
-            elif isinstance(stmt, Inhibition):
-                self._add_activation(stmt)
+                self._add_arrow(stmt)
+            elif isinstance(stmt, Modification):
+                self._add_arrow(stmt)
+            elif isinstance(stmt, RegulateAmount):
+                self._add_arrow(stmt)
             elif isinstance(stmt, Complex):
                 self._add_complex(stmt)
-            elif isinstance(stmt, Modification):
-                self._add_modification(stmt)
             else:
                 logger.warning('Unhandled statement type: %s' %
                                stmt.__class__.__name__)
@@ -322,21 +322,13 @@ class CyJSAssembler(object):
         with open(fname, 'wt') as fh:
             fh.write(s)
 
-    def _add_regulate_activity(self, stmt):
+    def _add_arrow(self, stmt):
+        assert len(stmt.agent_list()) == 2
+        subj, obj = stmt.agent_list()
         edge_type, edge_polarity = _get_stmt_type(stmt)
         edge_id = self._get_new_id()
-        source_id = self._add_node(stmt.subj)
-        target_id = self._add_node(stmt.obj)
-        edge = {'data': {'i': edge_type, 'id': edge_id,
-                         'source': source_id, 'target': target_id,
-                         'polarity': edge_polarity}}
-        self._edges.append(edge)
-
-    def _add_modification(self, stmt):
-        edge_type, edge_polarity = _get_stmt_type(stmt)
-        edge_id = self._get_new_id()
-        source_id = self._add_node(stmt.enz)
-        target_id = self._add_node(stmt.sub)
+        source_id = self._add_node(subj)
+        target_id = self._add_node(obj)
         edge = {'data': {'i': edge_type, 'id': edge_id,
                          'source': source_id, 'target': target_id,
                          'polarity': edge_polarity}}
@@ -682,6 +674,12 @@ def _get_stmt_type(stmt):
         edge_polarity = 'positive'
     elif isinstance(stmt, RasGap):
         edge_type = 'RasGap'
+        edge_polarity = 'negative'
+    elif isinstance(stmt, IncreaseAmount):
+        edge_type = 'IncreaseAmount'
+        edge_polarity = 'positive'
+    elif isinstance(stmt, DecreaseAmount):
+        edge_type = 'DecreaseAmount'
         edge_polarity = 'negative'
     else:
         edge_type = stmt.__class__.__str__()
