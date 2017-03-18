@@ -332,7 +332,8 @@ mod_state_prefix = {
     'glycosylation': 'glycosylated',
     'deglycosylation': 'deglycosylated',
     'ribosylation': 'ribosylated',
-    'deribosylation': 'deribosylated'
+    'deribosylation': 'deribosylated',
+    'modification': 'modified'
 }
 
 mod_process_prefix = {
