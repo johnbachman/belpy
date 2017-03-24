@@ -72,9 +72,9 @@ if __name__ == '__main__':
 
     cleanup = False
     verbose = True
-    path_to_reach = '/pmc/reach_no_bioentities/reach-gordo-1.3.3-SNAPSHOT.jar'
+    path_to_reach = '/pmc/reach_no_bioentities/reach_b4a284_no_bioentities.jar'
     #path_to_reach = '/Users/johnbachman/Dropbox/1johndata/Knowledge File/Biology/Research/Big Mechanism/reach/target/scala-2.11/reach-gordo-1.3.3-SNAPSHOT.jar'
-    reach_version = '1.3.3-38d2c4330'
+    reach_version = '1.3.3-b4a284'
     force_read = False
     force_fulltext = False
 
