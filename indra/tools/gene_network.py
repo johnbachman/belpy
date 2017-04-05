@@ -155,10 +155,10 @@ class GeneNetwork(object):
         # Optionally filter out statements not involving only our gene set
         if filter:
             if len(self.gene_list) > 1:
-                bp_statements = ac.filter_gene_list(bp_statements,
+                bp_statements = ac.filter_gene_list(bp.statements,
                                                      self.gene_list, 'one')
             else:
-                bp_statements = ac.filter_gene_list(bp_statements,
+                bp_statements = ac.filter_gene_list(bp.statements,
                                                      self.gene_list, 'all')
         return bp.statements
 
