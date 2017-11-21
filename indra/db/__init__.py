@@ -466,11 +466,17 @@ class DatabaseManager(object):
         stmt_data = []
         cols = ('uuid', 'db_ref', 'type', 'json', 'indra_version')
         for stmt in stmts:
+            # TODO: Workaround for Issue 253 (Biopax returning lists of lists)
+            try:
+                stmt_json = json.dumps(stmt.to_json()).encode('utf8'),
+            # Skip problematic statements
+            except AttributeError:
+                continue
             stmt_rec = (
                 stmt.uuid,
                 db_ref_id,
                 stmt.__class__.__name__,
-                json.dumps(stmt.to_json()).encode('utf8'),
+                stmt_json,
                 get_version()
             )
             stmt_data.append(stmt_rec)
