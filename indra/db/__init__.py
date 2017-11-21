@@ -465,6 +465,7 @@ class DatabaseManager(object):
         # Prepare the statements for copying
         stmt_data = []
         cols = ('uuid', 'db_ref', 'type', 'json', 'indra_version')
+        indra_version = get_version()
         for stmt in stmts:
             # TODO: Workaround for Issue 253 (Biopax returning lists of lists)
             try:
@@ -477,7 +478,7 @@ class DatabaseManager(object):
                 db_ref_id,
                 stmt.__class__.__name__,
                 stmt_json,
-                get_version()
+                indra_version
             )
             stmt_data.append(stmt_rec)
         self.copy('statements', stmt_data, cols)
