@@ -1,9 +1,10 @@
-"""This tool provides a uniform method for createing a robust indra version
+"""This tool provides a uniform method for creating a robust INDRA version
 string, both from within python and from commandline. If possible, the version
 will include the git commit hash. Otherwise, the version will be marked with
 'UNHASHED'.
 """
-
+from __future__ import absolute_import, print_function, unicode_literals
+from builtins import dict, str
 from subprocess import check_output, CalledProcessError
 from os.path import dirname
 from os import devnull
@@ -19,6 +20,7 @@ def get_version(with_git_hash=True):
             try:
                 ret = check_output(['git', 'rev-parse', 'HEAD'],
                                    cwd=dirname(__file__), stderr=nul)
+                ret = ret.decode('ascii')
             except CalledProcessError:
                 ret = 'UNHASHED'
         version = '%s-%s' % (version, ret.strip())
