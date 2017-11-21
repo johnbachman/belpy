@@ -342,8 +342,11 @@ class DatabaseManager(object):
     def delete_all(self, entry_list):
         "Remove the given records from the given table."
         self.grab_session()
-        for entry in entry_list:
+        for ix, entry in enumerate(entry_list):
+            if (ix + 1) % 10 == 0:
+                print("Deleting item %d" % (ix+1))
             self.session.delete(entry)
+        print("Committing")
         self.commit("Could not remove %d records from the database." %
                     len(entry_list))
         return
