@@ -43,7 +43,7 @@ def send_request(url, data):
 
 
 @lru_cache(maxsize=100)
-def get_ids(search_term, **kwargs):
+def get_ids(search_term, quoted=False, **kwargs):
     """Search Pubmed for paper IDs given a search term.
 
     The options are passed as named arguments. For details on parameters that
@@ -52,7 +52,23 @@ def get_ids(search_term, **kwargs):
     parameters to pass are db='pmc' to search PMC instead of pubmed reldate=2
     to search for papers within the last 2 days mindate='2016/03/01',
     maxdate='2016/03/31' to search for papers in March 2016.
+
+    Parameters
+    ----------
+    search_term : str
+        The search term or phrase to use for querying Pubmed.
+    quoted : boolean
+        Specifies whether the search phrase should be quoted or not. For
+        example, determines whether to search for `DNA damage` or
+        `"DNA damage"`. Default is False (unquoted).
+
+    Returns
+    -------
+    list of strings
+        List of PMIDs.
     """
+    if quoted:
+        search_term = '"%s"' % search_term
     params = {'term': search_term,
               'retmax': 1000,
               'retstart': 0,
