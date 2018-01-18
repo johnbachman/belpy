@@ -157,7 +157,7 @@ class GeneNetwork(object):
                 logger.error('Invalid query type: %s' % query)
                 return []
             # Save the file if we're caching
-            if self.basename is not None:
+            if self.basename is not None and bp.model is not None:
                 bp.save_model(biopax_ras_owl_path)
         # Save statements to pickle file if we're caching
         if self.basename is not None:

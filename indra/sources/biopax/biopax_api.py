@@ -99,6 +99,11 @@ def process_pc_pathsbetween(gene_names, neighbor_limit=1,
                 bp = process_pc_pathsfromto(genes1, genes2,
                                             database_filter=database_filter)
             stmts += bp.statements
+        # FIXME: Ideally we would put together a combined model so that it
+        # can be cached, e.g. by gene_network
+        bp.statements = stmts
+        bp.model = None
+        return bp
 
 
 def process_pc_pathsfromto(source_genes, target_genes, neighbor_limit=1,
