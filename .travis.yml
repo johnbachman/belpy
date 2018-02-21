@@ -68,6 +68,7 @@ install:
   - wget -nv http://sorger.med.harvard.edu/data/bgyori/TEES.tar.bz2
   - tar xjf TEES.tar.bz2
   - mv TEES ~/TEES
+  - pip install networkx==2.1
 before_script:
   # Enable plotting on fake display
   - "export DISPLAY=:99.0"
