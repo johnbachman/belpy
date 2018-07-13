@@ -170,8 +170,9 @@ class EidosJsonLdProcessor(object):
                                   'end': end, 'duration': duration}
 
         # If that fails, we can still get the text of the event
-        if text is None:
-            text = self._sanitize(event.get('text'))
+        # if text is None:
+        # NOTE: for backwards compatibility, temporarily we use the even text
+        text = self._sanitize(event.get('text'))
 
         annotations = {
                 'found_by'   : event.get('rule'),
