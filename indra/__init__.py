@@ -8,7 +8,8 @@ __all__ = ['assemblers', 'belief', 'databases', 'explanation', 'literature',
            'mechlinker', 'preassembler', 'sources', 'tools', 'util']
 
 logging.basicConfig(format='%(levelname)s: [%(asctime)s] indra/%(name)s - %(message)s',
-                    level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
+                    level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S',
+                    stream=sys.stdout)
 
 # Suppress INFO-level logging from some dependencies
 logging.getLogger('requests').setLevel(logging.ERROR)
