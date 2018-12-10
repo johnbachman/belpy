@@ -8,8 +8,9 @@ try:
 except NameError:
     basestring = str
 
+
 class NlBuilder(object):
-    """Assembles executable models from mechanisms expressed in natural language.
+    """Assembles executable models from mechanisms in natural language.
 
     Parameters
     ----------
@@ -31,5 +32,25 @@ class NlBuilder(object):
             self._yaml_files = yaml_files
         else:
             raise ValueError('yaml_files must be a string or list/tuple.')
+        # Initialize the YAML files as an ordered list of modules
+        self.modules = [NlModule(yaml_file) for yaml_file in self._yaml_files]
 
 
+class NlModule(object):
+    def __init__(self, yaml_file):
+        with open(yaml_file, 'rt') as f:
+            yaml_dict = yaml.load(f)
+        # Assign module values based on the YAML entries
+        self.name = yaml_dict.get('name')
+        self.description = yaml_dict.get('description')
+        self.units = yaml_dict.get('units')
+        modules = yaml_dict.get('modules')
+        sentences = yaml_dict.get('sentences')
+        if modules is not None and sentences is not None:
+            raise ValueError("Error in file %s: a module must contain either "
+                             "submodules or sentences but not both." %
+                             yaml_file)
+
+        #if modules is not None:
+        #    self.modules = [NlModule(mod) for mod in modules]
+        
