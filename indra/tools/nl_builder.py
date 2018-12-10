@@ -57,7 +57,14 @@ class NlModule(object):
         # Process any submodules recursively
         elif submodules is not None:
             self.modules = [NlModule(submod) for submod in submodules]
+        # Process sentences
+        elif sentences is not None:
+            self.sentences = [NlSentence(s) for s in sentences]
 
-        #if modules is not None:
-        #    self.modules = [NlModule(mod) for mod in modules]
-        
+
+class NlSentence(object):
+    def __init__(self, yaml_dict):
+        self.text = yaml_dict['text']
+        self.policy = yaml_dict.get('policy')
+        self.parameters = yaml_dict.get('parameters')
+

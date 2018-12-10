@@ -3,7 +3,7 @@ from builtins import dict, str
 from os.path import abspath, join, dirname
 import yaml
 from nose.tools import raises
-from indra.tools.nl_builder import NlBuilder, NlModule
+from indra.tools.nl_builder import NlBuilder, NlModule, NlSentence
 
 test_data_dir = join(dirname(abspath(__file__)), 'nl_builder_test_data')
 
@@ -33,7 +33,7 @@ def test_load_module():
     assert submod.description == None
     assert submod.units == None
     assert len(submod.sentences) == 5
-
+    assert isinstance(submod.sentences[0], NlSentence)
 
 @raises(ValueError)
 def test_both_sent_and_submod():
@@ -44,7 +44,7 @@ def test_both_sent_and_submod():
 
 @raises(ValueError)
 def test_neither_sent_nor_submod():
-    """A module YAML file must contain either sentences or submoduels."""
+    """A module YAML file must contain either sentences or submodules."""
     filename = join(test_data_dir, 'no_sentences_or_submodules.yaml')
     nlb = NlBuilder(filename)
 
