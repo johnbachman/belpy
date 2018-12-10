@@ -33,23 +33,30 @@ class NlBuilder(object):
         else:
             raise ValueError('yaml_files must be a string or list/tuple.')
         # Initialize the YAML files as an ordered list of modules
-        self.modules = [NlModule(yaml_file) for yaml_file in self._yaml_files]
+        self.modules = []
+        for yaml_file in self._yaml_files:
+            with open(yaml_file, 'rt') as f:
+                yaml_dict = yaml.load(f)
+            self.modules.append(NlModule(yaml_dict))
 
 
 class NlModule(object):
-    def __init__(self, yaml_file):
-        with open(yaml_file, 'rt') as f:
-            yaml_dict = yaml.load(f)
+    def __init__(self, yaml_dict):
         # Assign module values based on the YAML entries
         self.name = yaml_dict.get('name')
         self.description = yaml_dict.get('description')
         self.units = yaml_dict.get('units')
-        modules = yaml_dict.get('modules')
+        submodules = yaml_dict.get('modules')
         sentences = yaml_dict.get('sentences')
-        if modules is not None and sentences is not None:
-            raise ValueError("Error in file %s: a module must contain either "
-                             "submodules or sentences but not both." %
-                             yaml_file)
+        if submodules is None and sentences is None:
+            raise ValueError("A module must contain either submodules or "
+                             "sentences.")
+        if submodules is not None and sentences is not None:
+            raise ValueError("A module cannot contain both submodules and "
+                             "sentences.")
+        # Process any submodules recursively
+        elif submodules is not None:
+            self.modules = [NlModule(submod) for submod in submodules]
 
         #if modules is not None:
         #    self.modules = [NlModule(mod) for mod in modules]

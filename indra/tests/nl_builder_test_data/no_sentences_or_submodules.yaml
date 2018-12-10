@@ -1,0 +1,6 @@
+name: Apoptosis
+description:
+  Apoptosis module of the model.
+units:
+  concentration: molecules/cell
+  time: sec

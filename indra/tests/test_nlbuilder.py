@@ -1,6 +1,7 @@
 from __future__ import absolute_import, print_function, unicode_literals
 from builtins import dict, str
 from os.path import abspath, join, dirname
+import yaml
 from nose.tools import raises
 from indra.tools.nl_builder import NlBuilder, NlModule
 
@@ -22,12 +23,28 @@ def test_invalid_yaml():
 
 
 def test_load_module():
-    filename = join(test_data_dir, 'apoptosis.yaml')
-    nlm = NlModule(filename)
+    yaml_file = join(test_data_dir, 'apoptosis.yaml')
+    with open(yaml_file, 'rt') as f:
+        yaml_dict = yaml.load(f)
+    nlm = NlModule(yaml_dict)
+    assert len(nlm.modules) == 1
+    submod = nlm.modules[0]
+    assert isinstance(submod, NlModule)
+    assert submod.description == None
+    assert submod.units == None
+    assert len(submod.sentences) == 5
 
 
 @raises(ValueError)
-def test_invalid_sent_and_submod():
+def test_both_sent_and_submod():
     """A module YAML file should not contain both sentences and submodules."""
     filename = join(test_data_dir, 'sentences_and_submodules.yaml')
-    nlm = NlModule(filename)
+    nlb = NlBuilder(filename)
+
+
+@raises(ValueError)
+def test_neither_sent_nor_submod():
+    """A module YAML file must contain either sentences or submoduels."""
+    filename = join(test_data_dir, 'no_sentences_or_submodules.yaml')
+    nlb = NlBuilder(filename)
+
