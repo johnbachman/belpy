@@ -1,0 +1,25 @@
+name: Apoptosis
+description:
+  Apoptosis module of the model.
+units:
+  concentration: molecules/cell
+  time: sec
+sentences:
+  - text: TRAIL binds to DR5.
+    policy: one_step
+    parameters:
+      - kf:
+          value: 4e-7
+          name: kA1
+      - kr:
+          value: 1e-3
+          name: kA2
+modules:
+  - name: Receptor to Bid Cleavage
+    sentences:
+      - text: TRAIL bound to DR5 is converted to DISC.
+        policy: one_step
+        parameters:
+          - kc:
+              value: 1e-5
+              name: kA3
