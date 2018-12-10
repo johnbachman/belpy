@@ -27,13 +27,14 @@ def test_load_module():
     with open(yaml_file, 'rt') as f:
         yaml_dict = yaml.load(f)
     nlm = NlModule(yaml_dict)
-    assert len(nlm.modules) == 1
-    submod = nlm.modules[0]
+    assert len(nlm.submodules) == 1
+    submod = nlm.submodules[0]
     assert isinstance(submod, NlModule)
     assert submod.description == None
     assert submod.units == None
     assert len(submod.sentences) == 5
     assert isinstance(submod.sentences[0], NlSentence)
+
 
 @raises(ValueError)
 def test_both_sent_and_submod():
@@ -46,5 +47,15 @@ def test_both_sent_and_submod():
 def test_neither_sent_nor_submod():
     """A module YAML file must contain either sentences or submodules."""
     filename = join(test_data_dir, 'no_sentences_or_submodules.yaml')
+    nlb = NlBuilder(filename)
+
+
+#def test_process_text():
+#    yaml_file = join(test_data_dir, 'apoptosis.yaml')
+#    nlb = NlBuilder(yaml_file)
+#    nlb.process_text()
+
+def test_multiple_submodules():
+    filename = join(test_data_dir, 'multiple_submodules.yaml')
     nlb = NlBuilder(filename)
 

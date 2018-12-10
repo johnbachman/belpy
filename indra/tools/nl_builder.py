@@ -1,12 +1,17 @@
 from __future__ import absolute_import, print_function, unicode_literals
 from builtins import dict, str
+import logging
 import yaml
 from indra.sources import trips
+
 
 try:
     basestring
 except NameError:
     basestring = str
+
+
+logger = logging.getLogger('NlBuilder')
 
 
 class NlBuilder(object):
@@ -17,7 +22,6 @@ class NlBuilder(object):
     yaml_files : list or str
         List of file paths to the set of YAML files defining the model. If
         only a single file is to be used, a string may be passed.
-
 
     Attributes
     ----------
@@ -39,6 +43,12 @@ class NlBuilder(object):
                 yaml_dict = yaml.load(f)
             self.modules.append(NlModule(yaml_dict))
 
+    def all_sentences(self):
+        sentences = []
+        for mod in self.modules:
+            sentences.extend(mod.all_sentences())
+        return sentences
+
 
 class NlModule(object):
     def __init__(self, yaml_dict):
@@ -46,20 +56,29 @@ class NlModule(object):
         self.name = yaml_dict.get('name')
         self.description = yaml_dict.get('description')
         self.units = yaml_dict.get('units')
-        submodules = yaml_dict.get('modules')
-        sentences = yaml_dict.get('sentences')
-        if submodules is None and sentences is None:
+        self.submodules = yaml_dict.get('modules')
+        self.sentences = yaml_dict.get('sentences')
+        if self.submodules is None and self.sentences is None:
             raise ValueError("A module must contain either submodules or "
                              "sentences.")
-        if submodules is not None and sentences is not None:
+        elif self.submodules is not None and self.sentences is not None:
             raise ValueError("A module cannot contain both submodules and "
                              "sentences.")
         # Process any submodules recursively
-        elif submodules is not None:
-            self.modules = [NlModule(submod) for submod in submodules]
+        elif self.submodules is not None:
+            self.submodules = [NlModule(submod) for submod in self.submodules]
         # Process sentences
-        elif sentences is not None:
-            self.sentences = [NlSentence(s) for s in sentences]
+        elif self.sentences is not None:
+            self.sentences = [NlSentence(s) for s in self.sentences]
+
+    def all_sentences(self):
+        # If there are submodules, process them recursively
+        if self.submodules:
+            sentences = []
+            for mod in self.submodules:
+                sentences.extend(mod.all_sentences())
+        elif self.sentences:
+            return self.sentences
 
 
 class NlSentence(object):
@@ -67,4 +86,5 @@ class NlSentence(object):
         self.text = yaml_dict['text']
         self.policy = yaml_dict.get('policy')
         self.parameters = yaml_dict.get('parameters')
+        self.statements = None
 

@@ -1,0 +1,15 @@
+name: Cell Growth Signaling
+description: Lorem ipsum.
+modules:
+  - name: EGFR Signaling
+    sentences:
+      - text: EGF binds EGFR.
+      - text: HRG binds ERBB3 and ERBB4.
+      - text: EGFR bound to EGF binds EGFR, ERBB3, and ERBB4.
+  - name: MAPK Pathway
+    sentences:
+      - text: Active BRAF phosphorylates MAP2K1 at S218 and S222.
+      - text: MAP2K1 phosphorylated at S218 and S222 is active.
+      - text: Active MAP2K1 phosphorylates MAPK1 at T185 and Y187.
+      - text: MAPK1 phosphorylated at T185 and Y187 is active.
+
