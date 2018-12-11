@@ -1,6 +1,9 @@
 from __future__ import absolute_import, print_function, unicode_literals
 from builtins import dict, str
+import os
+import pickle
 import logging
+from collections import OrderedDict
 import yaml
 from indra.sources import trips
 
@@ -22,13 +25,23 @@ class NlBuilder(object):
     yaml_files : list or str
         List of file paths to the set of YAML files defining the model. If
         only a single file is to be used, a string may be passed.
+    cache_dir : str
+        Path to a directory used to cache any processed sentences as pickle
+        files. Default is `_cache`.
 
     Attributes
     ----------
     yaml_files : list
         List of files used to build the model.
+    cache_dir : str
+        Path to cache directory.
+    sentence_stmts : OrderedDict
+        A dict mapping NlSentence objects to the INDRA Statements resulting
+        from processing the sentence texts with TRIPS.
     """
-    def __init__(self, yaml_files):
+    def __init__(self, yaml_files, cache_dir='_cache'):
+        self.cache_dir = cache_dir
+        self.sentence_stmts = OrderedDict()
         # Initialize YAML files attribute
         if isinstance(yaml_files, basestring):
             self._yaml_files = [yaml_files]
@@ -48,6 +61,56 @@ class NlBuilder(object):
         for mod in self.modules:
             sentences.extend(mod.all_sentences())
         return sentences
+
+    def process_text(self):
+        """Process sentences in all modules with TRIPS.
+
+        After processing, the dict attribute `self.sentence_stmts` contains
+        mappings between all NlSentence objects and their associated INDRA
+        Statements. For convenience, this dict is also returned.
+
+        Returns
+        -------
+        dict
+            Updated value of `self.sentence_stmts`.
+        """
+        sentences = self.all_sentences()
+        for nls in sentences:
+            self.sentence_stmts[nls] = self._process_text_with_cache(nls.text)
+        return self.sentence_stmts
+
+    def _process_text_with_cache(self, text):
+        """Wrapper around trips.process_text that caches stmts in a file.
+
+        Parameters
+        ----------
+        text : str
+            Text to process.
+
+        Returns
+        -------
+        list of INDRA Statements
+            INDRA Statements returned by TRIPS.
+        """
+        text_clean = text.replace(' ', '')
+        text_clean = text_clean.replace('.', '')
+        text_clean = text_clean.replace(',', '')
+        cache_filename = text_clean + '.pkl'
+        cache_path = os.path.join(self.cache_dir, cache_filename)
+        # Check if we've already read this sentence
+        # If so, load from pickle file
+        if os.path.isfile(cache_path):
+            logger.info('Loading cached stmts: %s' % cache_filename)
+            with open(cache_path, 'rb') as f:
+                stmts = pickle.load(f)
+        # Otherwise, process with TRIPS
+        else:
+            logger.info('Processing: %s' % text)
+            stmts = trips.process_text(text).statements
+            logger.debug('Saving cached stmts: %s' % cache_filename)
+            with open(cache_path, 'wb') as f:
+                pickle.dump(stmts, f)
+        return stmts
 
 
 class NlModule(object):

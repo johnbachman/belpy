@@ -1,14 +1,17 @@
 from __future__ import absolute_import, print_function, unicode_literals
 from builtins import dict, str
-from os.path import abspath, join, dirname
+from os.path import abspath, join, dirname, isfile
 import yaml
 from nose.tools import raises
+from indra.statements import Complex, ActiveForm
 from indra.tools.nl_builder import NlBuilder, NlModule, NlSentence
 
 test_data_dir = join(dirname(abspath(__file__)), 'nl_builder_test_data')
 
 def test_constructor():
     nlb = NlBuilder([])
+    assert nlb.cache_dir == '_cache'
+    assert nlb.sentence_stmts == {}
 
 
 def test_load_yaml():
@@ -67,4 +70,23 @@ def test_all_sentences():
     assert len(sentences) == 7
 
 
+def test_process_text():
+    filename = join(test_data_dir, 'multiple_submodules.yaml')
+    nlb = NlBuilder(filename)
+    result = nlb.process_text()
+    # The return value should match the updated attribute
+    assert result == nlb.sentence_stmts
+    # There are 7 sentences in the model
+    assert len(nlb.sentence_stmts) == 7
+    ss_list = list(nlb.sentence_stmts.items())
+    # The first statement is a Complex
+    assert isinstance(ss_list[0][1][0], Complex)
+    # The last statement is an ActiveForm
+    assert isinstance(ss_list[-1][1][0], ActiveForm)
+    # Check that the files showed up in the cache
+    assert isfile(join(nlb.cache_dir, 'EGFbindsEGFR.pkl'))
+    assert isfile(join(nlb.cache_dir,
+                       'MAPK1phosphorylatedatT185andY187isactive.pkl'))
 
+if __name__ == '__main__':
+    test_process_text()
