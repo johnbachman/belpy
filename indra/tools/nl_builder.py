@@ -27,7 +27,8 @@ class NlBuilder(object):
         only a single file is to be used, a string may be passed.
     cache_dir : str
         Path to a directory used to cache any processed sentences as pickle
-        files. Default is `_cache`.
+        files. Default is `_cache`. If the directory does not already exist
+        it will be created.
 
     Attributes
     ----------
@@ -92,6 +93,8 @@ class NlBuilder(object):
         list of INDRA Statements
             INDRA Statements returned by TRIPS.
         """
+        if not os.path.exists(self.cache_dir):
+            os.makedirs(self.cache_dir)
         text_clean = text.replace(' ', '')
         text_clean = text_clean.replace('.', '')
         text_clean = text_clean.replace(',', '')
