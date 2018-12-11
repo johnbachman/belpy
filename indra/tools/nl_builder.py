@@ -58,6 +58,14 @@ class NlBuilder(object):
             self.modules.append(NlModule(yaml_dict))
 
     def all_sentences(self):
+        """Recursively collect sentences from all modules into a single list.
+
+        Returns
+        -------
+        list of NlSentence
+            List of sentences, ordered according to the flattened order of
+            sentences in the submodules.
+        """
         sentences = []
         for mod in self.modules:
             sentences.extend(mod.all_sentences())
@@ -117,6 +125,30 @@ class NlBuilder(object):
 
 
 class NlModule(object):
+    """Store information about a NL model module.
+
+    Note that a module may contain submodules or sentences but not both.
+
+    Parameters
+    ----------
+    yaml_dict : dict
+        Dict with structure corresponding to the contents of a single module
+        in the natural language model YAML file.
+
+    Attributes
+    ----------
+    name : str
+        Module name.
+    description : str
+        Module description.
+    units : dict
+        Contains two keys, 'concentration' and 'time', with str descriptors
+        of each.
+    submodules : list of NlModules
+        Submodules of this module.
+    sentences : list of NlSentences
+        Sentences for this module.
+    """
     def __init__(self, yaml_dict):
         # Assign module values based on the YAML entries
         self.name = yaml_dict.get('name')
@@ -155,9 +187,26 @@ class NlModule(object):
 
 
 class NlSentence(object):
+    """Store information about a single NL model sentence.
+
+    Parameters
+    ----------
+    yaml_dict : dict
+        Dict with structure corresponding to the contents of a single sentence.
+        in the natural language model YAML file.
+
+    Attributes
+    ----------
+    text : str
+        The text of the sentence.
+    policy : str
+        Policy for PySB assembly of the statement.
+    parameters : list of dicts
+        The dict contains a single key corresponding to the name of the
+        parameter recognized by the PysbAssembler (e.g., 'kf'). This
+        maps to a dict containing keys 'name' and 'value'.
+    """
     def __init__(self, yaml_dict):
         self.text = yaml_dict['text']
         self.policy = yaml_dict.get('policy')
         self.parameters = yaml_dict.get('parameters')
-        self.statements = None
-
