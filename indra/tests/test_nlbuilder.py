@@ -50,12 +50,21 @@ def test_neither_sent_nor_submod():
     nlb = NlBuilder(filename)
 
 
-#def test_process_text():
-#    yaml_file = join(test_data_dir, 'apoptosis.yaml')
-#    nlb = NlBuilder(yaml_file)
-#    nlb.process_text()
-
 def test_multiple_submodules():
     filename = join(test_data_dir, 'multiple_submodules.yaml')
     nlb = NlBuilder(filename)
+    assert len(nlb.modules) == 1
+    submods = nlb.modules[0].submodules
+    assert len(submods) == 2
+    assert len(submods[0].sentences) == 3
+    assert len(submods[1].sentences) == 4
+
+
+def test_all_sentences():
+    filename = join(test_data_dir, 'multiple_submodules.yaml')
+    nlb = NlBuilder(filename)
+    sentences = nlb.all_sentences()
+    assert len(sentences) == 7
+
+
 

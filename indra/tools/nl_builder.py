@@ -72,12 +72,19 @@ class NlModule(object):
             self.sentences = [NlSentence(s) for s in self.sentences]
 
     def all_sentences(self):
-        # If there are submodules, process them recursively
-        if self.submodules:
+        """Recursively collect sentences from this module or any submodules.
+
+        Returns
+        -------
+        list of NlSentence
+            List of sentences in this module or any submodules.
+        """
+        if self.submodules is not None:
             sentences = []
             for mod in self.submodules:
                 sentences.extend(mod.all_sentences())
-        elif self.sentences:
+            return sentences
+        elif self.sentences is not None:
             return self.sentences
 
 
