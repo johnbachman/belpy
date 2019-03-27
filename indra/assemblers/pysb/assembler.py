@@ -2051,16 +2051,20 @@ def conversion_assemble_one_step(stmt, model, agent_set, parameters):
     # Create pieces needed for to object
     # The obj Monomer needs to be synthesized in its "base" state
     # but it needs a fully specified monomer pattern
-    obj_to_patterns = []
-    for obj_to_monomer in obj_to_monomers:
+    def get_obj_to_pattern(obj_to_monomer):
         sites_dict = {}
         for site in obj_to_monomer.sites:
             if site in obj_to_monomer.site_states:
                 sites_dict[site] = obj_to_monomer.site_states[site][0]
             else:
                 sites_dict[site] = None
-        obj_to_pattern = obj_to_monomer(**sites_dict)
-        obj_to_patterns.append(as_complex_pattern(obj_to_pattern))
+        obj_to_pattern = as_complex_pattern(obj_to_monomer(**sites_dict))
+        return obj_to_pattern
+
+    obj_to_patterns = []
+    for obj_to_monomer in obj_to_monomers:
+        obj_to_pattern = get_obj_to_pattern(obj_to_monomer)
+        obj_to_patterns.append(obj_to_pattern)
 
     obj_to_pattern = ReactionPattern(obj_to_patterns)
     rule_obj_to_str = '_'.join([get_agent_rule_str(o) for o in stmt.obj_to])
