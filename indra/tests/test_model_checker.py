@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function, unicode_literals
-from builtins import dict, str
 import os
 import pickle
 import random
@@ -10,6 +8,7 @@ from collections import Counter
 from pysb import *
 from pysb.core import SelfExporter
 from pysb.tools import render_reactions
+from indra.sources import trips
 from indra.databases import hgnc_client
 from indra.explanation.model_checker import ModelChecker, _mp_embeds_into, \
                                       _cp_embeds_into, _match_lhs, \
@@ -1411,8 +1410,77 @@ def test_amount_vs_activation():
     assert results[0][1].result_code == 'NO_PATHS_FOUND', results
 
 
+def test_activating_mutation():
+    tp = trips.process_text('KRAS G12V is active. '
+                            'Active KRAS binds BRAF. '
+                            'SRC phosphorylates BRAF bound to KRAS. '
+                            'Phosphorylated BRAF is active. '
+                            'Active BRAF phosphorylates MAP2K1 at S218.'
+                    )
+    model_stmts = tp.statements
+    tp = trips.process_text('KRAS G12V phosphorylates MAP2K1 at S218.')
+    test_stmts = tp.statements
+    pa = PysbAssembler(model_stmts)
+    pa.make_model(policies='one_step')
+    # Test
+    mc = ModelChecker(pa.model, test_stmts)
+    mc.prune_influence_map()
+    results = mc.check_model()
+    assert results[0][1].path_found
+
+
+def test_akt1s1_mtor():
+    sentences = [
+         'AKT1S1 phosphorylated at T246 binds 14-3-3 proteins.',
+         'AKT1S1 not bound to 14-3-3 proteins binds to MTOR. ',
+         'MTOR not bound to AKT1S1 is active. ']
+    model_stmts = []
+    for sent in sentences:
+        tp = trips.process_text(sent, service_endpoint='drum-dev')
+        model_stmts.extend(tp.statements)
+    tp = trips.process_text('AKT1S1 phosphorylated at T246 activates MTOR. ')
+    test_stmts = tp.statements
+    pa = PysbAssembler(model_stmts)
+    pa.make_model(policies='one_step')
+    # Test
+    mc = ModelChecker(pa.model, test_stmts)
+    mc.prune_influence_map()
+    results = mc.check_model()
+    assert results[0][1].path_found
+
+
+def test_sos1_mapk1():
+    sentences = [
+        'Farnesylated KRAS translocates to the membrane.',
+        'Active SOS1 converts KRAS not bound to GTP to KRAS bound to GTP.',
+        'KRAS  bound to GTP is active.',
+        'KRAS G12V binds GTP.',
+        'Active KRAS binds BRAF.',
+        'SRC phosphorylates BRAF bound to KRAS.',
+        'Phosphorylated BRAF is active.',
+        'Active BRAF phosphorylates MAP2K1 at S218 and S222.',
+        'MAP2K1 phosphorylated at S218 and S222 is active.',
+        'Active MAP2K1 phosphorylates MAPK1 at T185 and Y187.',
+        'MAPK1 phosphorylated at T185 and Y187 is active.'
+    ]
+    model_stmts = []
+    for sent in sentences:
+        tp = trips.process_text(sent, service_endpoint='drum-dev')
+        model_stmts.extend(tp.statements)
+    tp = trips.process_text('SOS1 activates MAPK1.')
+    test_stmts = tp.statements
+    pa = PysbAssembler(model_stmts)
+    pa.make_model(policies='one_step')
+    # Test
+    mc = ModelChecker(pa.model, test_stmts)
+    mc.prune_influence_map()
+    results = mc.check_model(max_path_length=10)
+    mc.draw_im('im.pdf')
+    assert results[0][1].path_found
+
+
 if __name__ == '__main__':
-    test_prune_influence_map_subj_obj()
+    test_sos1_mapk1()
 
 # TODO Add tests for autophosphorylation
 # TODO Add test for transphosphorylation
