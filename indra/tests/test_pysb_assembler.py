@@ -10,6 +10,7 @@ from pysb import bng, WILD, Monomer, Annotation
 from pysb.testing import with_model
 from nose.tools import raises
 
+
 def test_pysb_assembler_complex1():
     member1 = Agent('BRAF')
     member2 = Agent('MEK1')
@@ -1075,6 +1076,8 @@ def test_activation_subj4():
     subj_right = right.complex_patterns[0].monomer_patterns[0]
     assert subj_left.site_conditions == {u'phospho': (u'p', WILD)}
     assert subj_right.site_conditions == {u'phospho': (u'p', WILD)}
+    kappa_str = pa.export_model('kappa')
+    assert kappa_str
 
 
 def test_pysb_preassembler_replace_activities1():
@@ -1160,6 +1163,8 @@ def test_convert_subj():
     assert len(pa.model.parameters) == 4
     assert len(pa.model.rules) == 1
     assert len(pa.model.monomers) == 3
+    kappa_str = pa.export_model('kappa')
+    assert kappa_str
 
 
 def test_activity_agent_rule_name():

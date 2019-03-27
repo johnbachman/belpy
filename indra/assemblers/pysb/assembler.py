@@ -9,7 +9,7 @@ import itertools
 from pysb import (Model, Monomer, Parameter, Expression, Observable, Rule,
         Annotation, ComponentDuplicateNameError, ComplexPattern,
         ReactionPattern, ANY, WILD, InvalidInitialConditionError)
-from pysb.core import SelfExporter
+from pysb.core import SelfExporter, as_complex_pattern
 import pysb.export
 
 from indra import statements as ist
@@ -2043,7 +2043,6 @@ def conversion_assemble_one_step(stmt, model, agent_set, parameters):
     # Create pieces needed for from object
     obj_from = stmt.obj_from[0]
     obj_from_pattern = get_monomer_pattern(model, obj_from)
-    obj_from_monomer = obj_from_pattern.monomer
     rule_obj_from_str = get_agent_rule_str(obj_from)
 
     obj_to_monomers = [get_monomer_pattern(model, o).monomer for
@@ -2061,7 +2060,7 @@ def conversion_assemble_one_step(stmt, model, agent_set, parameters):
             else:
                 sites_dict[site] = None
         obj_to_pattern = obj_to_monomer(**sites_dict)
-        obj_to_patterns.append(obj_to_pattern)
+        obj_to_patterns.append(as_complex_pattern(obj_to_pattern))
 
     obj_to_pattern = ReactionPattern(obj_to_patterns)
     rule_obj_to_str = '_'.join([get_agent_rule_str(o) for o in stmt.obj_to])
@@ -2077,7 +2076,8 @@ def conversion_assemble_one_step(stmt, model, agent_set, parameters):
     else:
         subj_pattern = get_monomer_pattern(model, stmt.subj)
         result_pattern = obj_to_pattern
-        result_pattern.complex_patterns.insert(0, subj_pattern)
+        subj_complex_pattern = as_complex_pattern(subj_pattern())
+        result_pattern.complex_patterns.insert(0, subj_complex_pattern)
         rule_subj_str = get_agent_rule_str(stmt.subj)
         rule_name = '%s_catalyzes_%s_converted_to_%s' % \
             (rule_subj_str, rule_obj_from_str, rule_obj_to_str)
@@ -2089,7 +2089,7 @@ def conversion_assemble_one_step(stmt, model, agent_set, parameters):
         kfp = parameters.get('kf', Param(param_name, 2e-4, True))
         kf_one_step_convert = get_create_parameter(model, kfp)
 
-        r = Rule(rule_name, subj_pattern + obj_from_pattern >>
+        r = Rule(rule_name, subj_complex_pattern + obj_from_pattern >>
                             result_pattern,
                  kf_one_step_convert)
     anns = [Annotation(rule_name, stmt.uuid, 'from_indra_statement')]
