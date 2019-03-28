@@ -1,13 +1,15 @@
 from __future__ import absolute_import, print_function, unicode_literals
 from builtins import dict, str
+import kappy
 import xml.etree.ElementTree as ET
-from indra.assemblers.pysb import PysbAssembler
+from pysb.export import export
+from pysb.testing import with_model
+from pysb import bng, WILD, Monomer, Annotation
 import indra.assemblers.pysb.assembler as pa
+from indra.assemblers.pysb import PysbAssembler
 from indra.assemblers.pysb.assembler import Policy, Param
 from indra.assemblers.pysb.preassembler import PysbPreassembler
 from indra.statements import *
-from pysb import bng, WILD, Monomer, Annotation
-from pysb.testing import with_model
 from nose.tools import raises
 
 
@@ -1163,8 +1165,7 @@ def test_convert_subj():
     assert len(pa.model.parameters) == 4
     assert len(pa.model.rules) == 1
     assert len(pa.model.monomers) == 3
-    kappa_str = pa.export_model('kappa')
-    assert kappa_str
+    _parse_kappa(pa.model)
 
 
 def test_convert_same_obj():
@@ -1176,8 +1177,28 @@ def test_convert_same_obj():
     assert len(pa.model.parameters) == 3
     assert len(pa.model.rules) == 1
     assert len(pa.model.monomers) == 2
-    kappa_str = pa.export_model('kappa')
-    assert kappa_str
+    _parse_kappa(pa.model)
+
+
+def test_convert_same_obj_bound():
+    obj_from = Agent('X', bound_conditions=[BoundCondition(Agent('Y'), False)])
+    obj_to = Agent('X', bound_conditions=[BoundCondition(Agent('Y'), True)])
+    stmt = Conversion(Agent('Z'), [obj_from], [obj_to])
+    pa = PysbAssembler([stmt])
+    pa.make_model()
+    assert len(pa.model.parameters) == 4
+    assert len(pa.model.rules) == 1
+    assert len(pa.model.monomers) == 3
+    _parse_kappa(pa.model)
+
+
+def _parse_kappa(model):
+    kappa = kappy.KappaStd()
+    model_str = export(model, 'kappa')
+    assert model_str
+    kappa.add_model_string(model_str)
+    kappa.project_parse()
+
 
 
 def test_activity_agent_rule_name():
