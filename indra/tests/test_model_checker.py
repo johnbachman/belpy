@@ -1433,18 +1433,21 @@ def test_akt1s1_mtor():
     sentences = [
          'AKT1S1 phosphorylated at T246 binds 14-3-3 proteins.',
          'AKT1S1 not bound to 14-3-3 proteins binds to MTOR. ',
-         'MTOR not bound to AKT1S1 is active. ']
+         'MTOR not bound to AKT1S1 is active. ',
+         'MTOR phosphorylated at S2448 is active. ',
+         ]
     model_stmts = []
     for sent in sentences:
         tp = trips.process_text(sent, service_endpoint='drum-dev')
         model_stmts.extend(tp.statements)
-    tp = trips.process_text('AKT1S1 phosphorylated at T246 activates MTOR. ')
+    tp = trips.process_text('AKT1S1 phosphorylated on T246 activates MTOR. ')
     test_stmts = tp.statements
     pa = PysbAssembler(model_stmts)
     pa.make_model(policies='one_step')
     # Test
     mc = ModelChecker(pa.model, test_stmts)
     mc.prune_influence_map()
+    mc.draw_im('im.pdf')
     results = mc.check_model()
     assert results[0][1].path_found
 
@@ -1480,7 +1483,7 @@ def test_sos1_mapk1():
 
 
 if __name__ == '__main__':
-    test_sos1_mapk1()
+    test_akt1s1_mtor()
 
 # TODO Add tests for autophosphorylation
 # TODO Add test for transphosphorylation
