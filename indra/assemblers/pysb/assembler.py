@@ -280,6 +280,7 @@ def grounded_monomer_patterns(model, agent, ignore_activities=False):
     if not sc_list:
         yield monomer()
 
+
 def rules_with_annotation(model, monomer_name, predicate):
     rules = []
     for ann in model.annotations:
@@ -2045,34 +2046,38 @@ def conversion_assemble_one_step(stmt, model, agent_set, parameters):
     obj_from_pattern = get_monomer_pattern(model, obj_from)
     rule_obj_from_str = get_agent_rule_str(obj_from)
 
-    obj_to_monomers = [get_monomer_pattern(model, o).monomer for
-                       o in stmt.obj_to]
+    if len(stmt.obj_to) == 1 and stmt.obj_to[0].name == obj_from.name:
+        obj_to_mp = get_monomer_pattern(model, stmt.obj_to[0])
+        obj_to_pattern = \
+            ReactionPattern([as_complex_pattern(obj_to_mp)])
+    else:
+        # Create pieces needed for to object
+        # The obj Monomer needs to be synthesized in its "base" state
+        # but it needs a fully specified monomer pattern
+        def get_obj_to_pattern(obj_to_monomer):
+            sites_dict = {}
+            for site in obj_to_monomer.sites:
+                if site in obj_to_monomer.site_states:
+                    sites_dict[site] = obj_to_monomer.site_states[site][0]
+                else:
+                    sites_dict[site] = None
+            obj_to_pattern = as_complex_pattern(obj_to_monomer(**sites_dict))
+            return obj_to_pattern
 
-    # Create pieces needed for to object
-    # The obj Monomer needs to be synthesized in its "base" state
-    # but it needs a fully specified monomer pattern
-    def get_obj_to_pattern(obj_to_monomer):
-        sites_dict = {}
-        for site in obj_to_monomer.sites:
-            if site in obj_to_monomer.site_states:
-                sites_dict[site] = obj_to_monomer.site_states[site][0]
-            else:
-                sites_dict[site] = None
-        obj_to_pattern = as_complex_pattern(obj_to_monomer(**sites_dict))
-        return obj_to_pattern
+        obj_to_monomers = [get_monomer_pattern(model, o).monomer for
+                           o in stmt.obj_to]
+        obj_to_patterns = []
+        for obj_to_monomer in obj_to_monomers:
+            obj_to_pattern = get_obj_to_pattern(obj_to_monomer)
+            obj_to_patterns.append(obj_to_pattern)
 
-    obj_to_patterns = []
-    for obj_to_monomer in obj_to_monomers:
-        obj_to_pattern = get_obj_to_pattern(obj_to_monomer)
-        obj_to_patterns.append(obj_to_pattern)
-
-    obj_to_pattern = ReactionPattern(obj_to_patterns)
+        obj_to_pattern = ReactionPattern(obj_to_patterns)
     rule_obj_to_str = '_'.join([get_agent_rule_str(o) for o in stmt.obj_to])
 
     if stmt.subj is None:
         rule_name = '%s_converted_to_%s' % (rule_obj_from_str, rule_obj_to_str)
         param_name = 'kf_%s%s_convert' % (obj_from.name[0].lower(),
-                                          obj_to_monomers[0].name[0].lower())
+                                          stmt.obj_to[0].name[0].lower())
         kfp = parameters.get('kf', Param(param_name, 2, True))
         kf_one_step_convert = get_create_parameter(model, kfp)
         r = Rule(rule_name, obj_from_pattern >> obj_to_pattern,
@@ -2087,7 +2092,7 @@ def conversion_assemble_one_step(stmt, model, agent_set, parameters):
             (rule_subj_str, rule_obj_from_str, rule_obj_to_str)
         param_name = 'kf_%s%s%s_convert' % \
             (stmt.subj.name[0].lower(), obj_from.name[0].lower(),
-             obj_to_monomers[0].name[0].lower())
+             stmt.obj_to[0].name[0].lower())
         # Scale the average apparent increaseamount rate by the default
         # protein initial condition
         kfp = parameters.get('kf', Param(param_name, 2e-4, True))

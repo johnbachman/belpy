@@ -1167,6 +1167,19 @@ def test_convert_subj():
     assert kappa_str
 
 
+def test_convert_same_obj():
+    obj_from = Agent('X', mods=[ModCondition('phosphorylation')])
+    obj_to = Agent('X', mods=[ModCondition('ubiquitination')])
+    stmt = Conversion(Agent('PIK3CA'), [obj_from], [obj_to])
+    pa = PysbAssembler([stmt])
+    pa.make_model()
+    assert len(pa.model.parameters) == 3
+    assert len(pa.model.rules) == 1
+    assert len(pa.model.monomers) == 2
+    kappa_str = pa.export_model('kappa')
+    assert kappa_str
+
+
 def test_activity_agent_rule_name():
     stmt = Phosphorylation(Agent('BRAF',
                                  activity=ActivityCondition('kinase',
