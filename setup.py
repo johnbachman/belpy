@@ -25,6 +25,7 @@ def main():
                       'bel': ['pybel==0.13.2'],
                       'sbml': ['python-libsbml'],
                       'obo': ['obonet'],
+                      'pypath': ['python-igraph', 'pycairo', 'pygraphviz'],
                       # Tools and analysis
                       'machine': ['pytz', 'tzlocal', 'tweepy', 'pyyaml>=5.1.0',
                                   'click'],
