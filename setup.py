@@ -41,6 +41,7 @@ def main():
                       }
     extras_require['all'] = list({dep for deps in extras_require.values()
                                   for dep in deps})
+    dependency_links = ['git+https://github.com/saezlab/pypath.git#egg=pypath']
 
     setup(name='indra',
           version='1.15.2',
@@ -88,6 +89,7 @@ def main():
                     'indra.tools.machine', 'indra.util'],
           install_requires=install_list,
           extras_require=extras_require,
+          dependency_links=dependency_links,
           include_package_data=True,
           keywords=['systems', 'biology', 'model', 'pathway', 'assembler',
                     'nlp', 'mechanism', 'biochemistry', 'network'],
