@@ -25,7 +25,8 @@ def main():
                       'bel': ['pybel==0.13.2'],
                       'sbml': ['python-libsbml'],
                       'obo': ['obonet'],
-                      'pypath': ['python-igraph', 'pycairo', 'pygraphviz'],
+                      'pypath @ git+https://github.com/saezlab/pypath.git':\
+                          ['python-igraph', 'pycairo', 'pygraphviz'],
                       # Tools and analysis
                       'machine': ['pytz', 'tzlocal', 'tweepy', 'pyyaml>=5.1.0',
                                   'click'],
@@ -41,7 +42,6 @@ def main():
                       }
     extras_require['all'] = list({dep for deps in extras_require.values()
                                   for dep in deps})
-    dependency_links = ['git+https://github.com/saezlab/pypath.git#egg=pypath']
 
     setup(name='indra',
           version='1.15.2',
@@ -89,7 +89,6 @@ def main():
                     'indra.tools.machine', 'indra.util'],
           install_requires=install_list,
           extras_require=extras_require,
-          dependency_links=dependency_links,
           include_package_data=True,
           keywords=['systems', 'biology', 'model', 'pathway', 'assembler',
                     'nlp', 'mechanism', 'biochemistry', 'network'],
