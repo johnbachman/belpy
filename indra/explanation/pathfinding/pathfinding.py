@@ -761,7 +761,6 @@ def open_dijkstra_search(g, start, reverse=False, depth_limit=2, path_limit=None
     else:
         proper_path = lambda x: True
     paths = list(nx.single_source_dijkstra_path(g, start,
-                                                cutoff=depth_limit,
                                                 weight='context_weight').values())[1:]:
     if path_limit is not None:
         for p in paths:
